@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Leslie Cai</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F7F5F0;
+      --ink: #1A1814;
+      --mid: #6B6560;
+      --accent: #C4824A;
+      --line: #D8D4CC;
+      --white: #FDFCFA;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      cursor: none;
+      overflow-x: hidden;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease;
+      transform: translate(-50%, -50%);
+    }
+    .cursor-ring {
+      width: 28px; height: 28px;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.35s ease, width 0.2s ease, height 0.2s ease, opacity 0.2s ease;
+      transform: translate(-50%, -50%);
+      opacity: 0.4;
+    }
+    body:hover .cursor-ring { opacity: 0.4; }
+    a:hover ~ .cursor-ring, a:hover .cursor-ring { width: 40px; height: 40px; }
+
+    /* Noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.6;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 60px;
+      background: var(--bg);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    nav.scrolled { border-color: var(--line); }
+    .nav-logo {
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+    .nav-logo svg {
+      height: 30px;
+      width: auto;
+      transition: opacity 0.2s ease;
+    }
+    .nav-logo:hover svg { opacity: 0.6; }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mid);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    .nav-links a:hover { color: var(--ink); }
+
+    /* SECTIONS */
+    section { padding: 120px 60px; }
+
+    /* HERO */
+    #hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding-top: 100px;
+      padding-bottom: 60px;
+      position: relative;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-left { padding-bottom: 20px; }
+
+    .hero-eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.2s forwards;
+    }
+
+    .hero-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(72px, 9vw, 128px);
+      font-weight: 300;
+      line-height: 0.9;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      opacity: 0;
+      animation: fadeUp 0.9s ease 0.35s forwards;
+    }
+    .hero-name em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-left: 80px;
+      padding-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 0.9s ease 0.55s forwards;
+    }
+
+    .hero-bio {
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--mid);
+      max-width: 400px;
+      margin-bottom: 40px;
+    }
+    .hero-bio strong { color: var(--ink); font-weight: 500; }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      padding: 12px 28px;
+      background: var(--ink);
+      color: var(--bg);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .btn-primary:hover { background: var(--accent); color: var(--white); }
+
+    .btn-ghost {
+      display: inline-block;
+      padding: 12px 28px;
+      border: 1px solid var(--line);
+      color: var(--mid);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+    .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 40px;
+      left: 60px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 1s forwards;
+    }
+    .scroll-line {
+      width: 40px;
+      height: 1px;
+      background: var(--line);
+    }
+    .scroll-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+
+    /* SECTION HEADERS */
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(36px, 4vw, 56px);
+      font-weight: 300;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 60px;
+    }
+    .section-title em { font-style: italic; }
+
+    /* ABOUT */
+    #about {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .about-left {}
+
+    .about-text {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--mid);
+      margin-bottom: 24px;
+    }
+    .about-text strong { color: var(--ink); font-weight: 500; }
+
+    .about-details {
+      margin-top: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .detail-row {
+      display: flex;
+      gap: 24px;
+      align-items: baseline;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .detail-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--mid);
+      min-width: 100px;
+    }
+    .detail-value {
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .about-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+    }
+    .stat-box {
+      background: var(--white);
+      padding: 36px 32px;
+      border: 1px solid var(--line);
+    }
+    .stat-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 52px;
+      font-weight: 300;
+      line-height: 1;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .stat-number span { color: var(--accent); }
+    .stat-desc {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mid);
+      line-height: 1.5;
+    }
+
+    /* EXPERIENCE */
+    #experience {
+      border-bottom: 1px solid var(--line);
+      background: var(--white);
+    }
+
+    .exp-list { display: flex; flex-direction: column; }
+
+    .exp-item {
+      display: grid;
+      grid-template-columns: 220px 1fr 180px;
+      gap: 40px;
+      align-items: start;
+      padding: 40px 0;
+      border-bottom: 1px solid var(--line);
+      transition: background 0.2s ease;
+      cursor: default;
+    }
+    .exp-item:last-child { border-bottom: none; }
+    .exp-item:hover { background: var(--bg); margin: 0 -60px; padding: 40px 60px; }
+
+    .exp-company {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+    .exp-company-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-top: 6px;
+    }
+
+    .exp-role {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+    .exp-bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .exp-bullets li {
+      font-size: 13.5px;
+      color: var(--mid);
+      line-height: 1.65;
+      padding-left: 16px;
+      position: relative;
+    }
+    .exp-bullets li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 12px;
+    }
+
+    .exp-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--mid);
+      text-align: right;
+      padding-top: 4px;
+    }
+
+    /* SKILLS */
+    #skills {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .skill-category {
+      background: var(--white);
+      padding: 40px 36px;
+      border: 1px solid var(--line);
+      transition: border-color 0.2s ease;
+    }
+    .skill-category:hover { border-color: var(--ink); }
+
+    .skill-cat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .skill-cat-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 400;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .skill-tag {
+      padding: 5px 12px;
+      border: 1px solid var(--line);
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--mid);
+      transition: all 0.2s ease;
+    }
+    .skill-tag:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .certs-section {
+      margin-top: 60px;
+      padding-top: 48px;
+      border-top: 1px solid var(--line);
+    }
+    .certs-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 20px;
+    }
+    .cert-list {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .cert-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border: 1px solid var(--line);
+      background: var(--white);
+    }
+    .cert-dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .cert-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+    }
+
+    /* CONTACT */
+    #contact {
+      background: var(--ink);
+      color: var(--bg);
+    }
+
+    #contact .section-label { color: var(--accent); }
+    #contact .section-title { color: var(--bg); }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .contact-left {}
+
+    .contact-tagline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-style: italic;
+      font-weight: 300;
+      color: rgba(247,245,240,0.6);
+      line-height: 1.6;
+      max-width: 360px;
+    }
+
+    .contact-links {
+      margin-top: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .contact-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(247,245,240,0.1);
+      text-decoration: none;
+      transition: padding-left 0.2s ease;
+    }
+    .contact-link:hover { padding-left: 8px; }
+    .contact-link:hover .link-arrow { transform: translate(4px, -4px); }
+
+    .link-info { display: flex; flex-direction: column; gap: 4px; }
+    .link-type {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(247,245,240,0.4);
+    }
+    .link-value {
+      font-size: 15px;
+      color: var(--bg);
+    }
+    .link-arrow {
+      font-size: 18px;
+      color: var(--accent);
+      transition: transform 0.2s ease;
+    }
+
+    .contact-right {}
+    .photo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .headshot {
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      filter: grayscale(15%);
+      transition: filter 0.4s ease;
+    }
+    .headshot:hover { filter: grayscale(0%); }
+    .photo-label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 20px 24px;
+      background: rgba(247,245,240,0.05);
+      border: 1px solid rgba(247,245,240,0.1);
+      border-top: none;
+      max-width: 360px;
+      width: 100%;
+    }
+    .photo-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--bg);
+    }
+    .photo-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(247,245,240,0.4);
+    }
+    .avail-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(247,245,240,0.35);
+      margin-bottom: 12px;
+    }
+    .avail-city {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 48px;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--bg);
+      line-height: 1;
+      margin-bottom: 28px;
+    }
+    .avail-note {
+      font-size: 14px;
+      color: rgba(247,245,240,0.5);
+      line-height: 1.7;
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--ink);
+      border-top: 1px solid rgba(247,245,240,0.1);
+      padding: 28px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-copy {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: rgba(247,245,240,0.3);
+    }
+    .footer-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px;
+      font-weight: 300;
+      color: rgba(247,245,240,0.5);
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      nav { padding: 20px 28px; }
+      section { padding: 80px 28px; }
+      #hero { grid-template-columns: 1fr; padding-top: 140px; }
+      .hero-right { padding-left: 0; padding-top: 40px; }
+      .about-grid { grid-template-columns: 1fr; gap: 48px; }
+      .about-stats { margin-top: 0; }
+      .exp-item { grid-template-columns: 1fr; gap: 12px; }
+      .exp-date { text-align: left; }
+      .exp-item:hover { margin: 0; padding: 40px 0; }
+      .skills-grid { grid-template-columns: 1fr; }
+      .contact-grid { grid-template-columns: 1fr; gap: 48px; }
+      footer { padding: 20px 28px; }
+      .hero-scroll { display: none; }
+      .nav-links { gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <a href="#hero" class="nav-logo" aria-label="Leslie Cai">
+      <!-- Logo: italic L sits outside, CAI in serif caps -->
+      <svg viewBox="0 0 90 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Italic L in accent color, slightly overlapping -->
+        <text x="0" y="26" font-family="Cormorant Garamond, Georgia, serif" font-size="30" font-style="italic" font-weight="300" fill="#C4824A">L</text>
+        <!-- CAI in ink, tighter tracking -->
+        <text x="17" y="26" font-family="Cormorant Garamond, Georgia, serif" font-size="26" font-weight="400" fill="#1A1814" letter-spacing="2">CAI</text>
+      </svg>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-left">
+      <p class="hero-eyebrow">Strategy · Operations · Startups</p>
+      <h1 class="hero-name">Leslie<br><em>Cai</em></h1>
+    </div>
+    <div class="hero-right">
+      <p class="hero-bio">
+        CS & Cognitive Science student at <strong>University of Michigan</strong>, building at the intersection of <strong>technology, strategy, and startups</strong>. I turn complex information into tools, systems, and decisions that actually move things forward.
+      </p>
+      <div class="hero-cta">
+        <a href="/cdn-cgi/l/email-protection#2c40495f404549444f6c5941454f4402494859" class="btn-primary">Get in touch</a>
+        <a href="https://linkedin.com/in/lesliehc" target="_blank" class="btn-ghost">LinkedIn</a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <div class="scroll-line"></div>
+      <span class="scroll-label">Scroll</span>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="about-grid">
+      <div class="about-left reveal">
+        <p class="section-label">01 — About</p>
+        <h2 class="section-title">Where tech<br>meets <em>strategy</em></h2>
+        <p class="about-text">
+          At heart, I enjoy creating <strong>technical tools that make complex information easier to use</strong>. This passion has guided me through my academic and professional journey — evolving into a broader fascination with how technology can innovate and disrupt traditional sectors.
+        </p>
+        <p class="about-text">
+          From venture capital at <strong>New York Life Ventures</strong> to global finance at <strong>Bloomberg</strong> and early-stage operations at <strong>Spivvy</strong>, I've built systems, frameworks, and analyses that help teams make better, faster decisions.
+        </p>
+        <div class="about-details">
+          <div class="detail-row">
+            <span class="detail-label">Location</span>
+            <span class="detail-value">Brooklyn, NY · Ann Arbor, MI</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Currently</span>
+            <span class="detail-value">Product & Strategy Intern @ Spivvy</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Education</span>
+            <span class="detail-value">UMich CS & Cognitive Science, May 2026</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Email</span>
+            <span class="detail-value"><a href="/cdn-cgi/l/email-protection#a1cdc4d2cdc8c4c9c2e1d4ccc8c2c98fc4c5d4" style="color:var(--accent);text-decoration:none;"><span class="__cf_email__" data-cfemail="cba7aeb8a7a2aea3a88bbea6a2a8a3e5aeafbe">[email&#160;protected]</span></a></span>
+          </div>
+        </div>
+      </div>
+      <div class="about-stats reveal" style="transition-delay:0.15s;">
+        <div class="about-grid-stats">
+          <div class="about-stats">
+            <div class="stat-box">
+              <div class="stat-number">3<span>+</span></div>
+              <div class="stat-desc">Years of internship<br>experience</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">650<span>+</span></div>
+              <div class="stat-desc">AI annotation tasks<br>at 98% QA accuracy</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">45<span>%</span></div>
+              <div class="stat-desc">Event participation<br>growth at Chess Club</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">3<span>×</span></div>
+              <div class="stat-desc">Cross-functional<br>finance internships</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <p class="section-label reveal">02 — Experience</p>
+    <h2 class="section-title reveal">Where I've<br><em>worked</em></h2>
+
+    <div class="exp-list">
+
+      <div class="exp-item reveal">
+        <div>
+          <div class="exp-company">Spivvy</div>
+          <div class="exp-company-sub">Startup · Ann Arbor</div>
+        </div>
+        <div>
+          <div class="exp-role">Product & Strategy Intern</div>
+          <ul class="exp-bullets">
+            <li>Built the company's first operating and marketing budget infrastructure, improving spend visibility and supporting data-driven growth decisions.</li>
+            <li>Designed tracking frameworks linking outreach to user acquisition and seller activation, enabling the team to monitor marketplace readiness.</li>
+            <li>Implemented repeatable tracking systems for initiatives and outcomes, improving team alignment and execution speed.</li>
+          </ul>
+        </div>
+        <div class="exp-date">Feb 2026 – Present</div>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <div class="exp-company">Bloomberg</div>
+          <div class="exp-company-sub">Global Finance · New York</div>
+        </div>
+        <div>
+          <div class="exp-role">Global Finance Intern</div>
+          <ul class="exp-bullets">
+            <li>Analyzed client accounts and product data to surface pricing and usage trends; translated findings into actionable insights for Sales and Product.</li>
+            <li>Partnered across Sales, Product, Billing, and Contracts to execute entitlement updates, TSX write-offs, and withholding-tax cases.</li>
+            <li>Reconciled account records across Americas, EMEA, and APAC using the Bloomberg Terminal, leveraging proprietary data to validate trends.</li>
+          </ul>
+        </div>
+        <div class="exp-date">May – Aug 2025</div>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <div class="exp-company">StockStory</div>
+          <div class="exp-company-sub">Fintech · New York</div>
+        </div>
+        <div>
+          <div class="exp-role">Market Research Intern</div>
+          <ul class="exp-bullets">
+            <li>Contributed to market research and content supporting financial analysis products used by retail and institutional investors.</li>
+          </ul>
+        </div>
+        <div class="exp-date">Jan – Jun 2025</div>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <div class="exp-company">New York Life Ventures</div>
+          <div class="exp-company-sub">VC · New York</div>
+        </div>
+        <div>
+          <div class="exp-role">Strategy & Business Development Intern</div>
+          <ul class="exp-bullets">
+            <li>Developed an automated reporting tool to streamline data transfer between platforms, supporting a strategic AI startup database.</li>
+            <li>Analyzed investment strategies for seed-stage startups — assessing financial viability, market positioning, and growth potential.</li>
+            <li>Supported evaluation of business models to inform investment discussions at the venture arm of a top insurance company.</li>
+          </ul>
+        </div>
+        <div class="exp-date">May – Aug 2024</div>
+      </div>
+
+      <div class="exp-item reveal">
+        <div>
+          <div class="exp-company">Handshake AI</div>
+          <div class="exp-company-sub">Fellowship · Remote</div>
+        </div>
+        <div>
+          <div class="exp-role">AI Fellow</div>
+          <ul class="exp-bullets">
+            <li>Completed 650+ multimodal annotation tasks (text/image/audio) at 98% QA, consistently exceeding weekly quota by ~20%.</li>
+            <li>Proposed edge-case clarifications adopted by reviewers; ran spot checks to improve inter-reviewer consistency.</li>
+          </ul>
+        </div>
+        <div class="exp-date">Sep 2025 – Present</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <p class="section-label reveal">03 — Skills</p>
+    <h2 class="section-title reveal">What I<br><em>bring</em></h2>
+
+    <div class="skills-grid">
+      <div class="skill-category reveal">
+        <div class="skill-cat-label">Technical</div>
+        <div class="skill-cat-title">Code &<br>Analysis</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">C++</span>
+          <span class="skill-tag">SQL</span>
+          <span class="skill-tag">Excel</span>
+          <span class="skill-tag">Google Sheets</span>
+          <span class="skill-tag">Data Structures</span>
+          <span class="skill-tag">Algorithms</span>
+        </div>
+      </div>
+
+      <div class="skill-category reveal" style="transition-delay:0.1s;">
+        <div class="skill-cat-label">Strategy</div>
+        <div class="skill-cat-title">Business &<br>Operations</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Budget Infrastructure</span>
+          <span class="skill-tag">Startup Evaluation</span>
+          <span class="skill-tag">Financial Modeling</span>
+          <span class="skill-tag">Market Research</span>
+          <span class="skill-tag">Tracking Frameworks</span>
+          <span class="skill-tag">Process Design</span>
+        </div>
+      </div>
+
+      <div class="skill-category reveal" style="transition-delay:0.2s;">
+        <div class="skill-cat-label">Tools</div>
+        <div class="skill-cat-title">Platforms &<br>Workflow</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Bloomberg Terminal</span>
+          <span class="skill-tag">Microsoft Office</span>
+          <span class="skill-tag">Google Workspace</span>
+          <span class="skill-tag">PowerPoint</span>
+          <span class="skill-tag">Outlook</span>
+          <span class="skill-tag">Ticketing Systems</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="certs-section reveal">
+      <div class="certs-label">Certifications</div>
+      <div class="cert-list">
+        <div class="cert-item">
+          <div class="cert-dot"></div>
+          <span class="cert-name">Wall Street Prep — Financial Modeling</span>
+        </div>
+        <div class="cert-item">
+          <div class="cert-dot"></div>
+          <span class="cert-name">Wall Street Prep — Sales & Trading</span>
+        </div>
+        <div class="cert-item">
+          <div class="cert-dot"></div>
+          <span class="cert-name">Bloomberg Market Concepts (BMC)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="contact-grid">
+      <div class="contact-left reveal">
+        <p class="section-label">04 — Contact</p>
+        <h2 class="section-title">Let's<br><em>connect</em></h2>
+
+        <div class="contact-links">
+          <a href="mailto:lesliehc@umich.edu" class="contact-link">
+            <div class="link-info">
+              <span class="link-type">Email</span>
+              <span class="link-value">lesliehc@umich.edu</span>
+            </div>
+            <span class="link-arrow">↗</span>
+          </a>
+          <a href="https://linkedin.com/in/lesliehc" target="_blank" class="contact-link">
+            <div class="link-info">
+              <span class="link-type">LinkedIn</span>
+              <span class="link-value">linkedin.com/in/lesliehc</span>
+            </div>
+            <span class="link-arrow">↗</span>
+          </a>
+          <a href="tel:3472590897" class="contact-link">
+            <div class="link-info">
+              <span class="link-type">Phone</span>
+              <span class="link-value">347.259.0897</span>
+            </div>
+            <span class="link-arrow">↗</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="contact-right reveal" style="transition-delay:0.15s;">
+        <div class="photo-wrap">
+          <img src="photo.jpeg" alt="Leslie Cai" class="headshot" />
+          <div class="photo-label">
+            <span class="photo-name">Leslie Cai</span>
+            <span class="photo-sub">CS & Cognitive Science · UMich '26</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <span class="footer-copy">© 2026 Leslie Cai. All rights reserved.</span>
+    <span class="footer-name">Leslie Cai</span>
+  </footer>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // Custom cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    document.addEventListener('mousemove', e => {
+      cursor.style.transform = `translate(${e.clientX - 4}px, ${e.clientY - 4}px)`;
+      ring.style.transform = `translate(${e.clientX - 14}px, ${e.clientY - 14}px)`;
+    });
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        ring.style.width = '44px';
+        ring.style.height = '44px';
+        ring.style.opacity = '0.7';
+      });
+      el.addEventListener('mouseleave', () => {
+        ring.style.width = '28px';
+        ring.style.height = '28px';
+        ring.style.opacity = '0.4';
+      });
+    });
+
+    // Nav scroll
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    });
+
